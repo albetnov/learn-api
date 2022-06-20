@@ -1,0 +1,23 @@
+{
+  "name": "learnapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/albetnov/learn-api.git"
+  },
+  "author": "Albet Novendo",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/albetnov/learn-api/issues"
+  },
+  "homepage": "https://github.com/albetnov/learn-api#readme",
+  "dependencies": {
+    "@mhoc/axios-digest-auth": "^0.8.0",
+    "axios": "^0.27.2"
+  }
+}

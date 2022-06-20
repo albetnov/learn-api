@@ -18,6 +18,9 @@ switch ($_GET['url']) {
     case '/query':
         require_once __DIR__ . '/Auth/query.php';
         break;
+    case '/digest':
+        require_once __DIR__ . '/Auth/digest.php';
+        break;
     default:
         Helper::handleError("URL is not valid.");
 }
