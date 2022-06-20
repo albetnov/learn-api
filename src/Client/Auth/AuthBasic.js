@@ -5,12 +5,12 @@
  * Before run this, please make sure to perform "npm install" first.
  */
 
-const { instance: axios } = require("./config");
+const { instance: axios } = require("../config");
 
 const basicAuth = (logging = true) =>
   new Promise(async (resolve, reject) => {
     try {
-      const response = await axios.get(`/basic`, {
+      const response = await axios.get(`/auth/basic`, {
         auth: {
           username: "root",
           password: "root123",

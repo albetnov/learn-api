@@ -9,18 +9,29 @@ if (!isset($_GET['url'])) {
 }
 
 switch ($_GET['url']) {
-    case '/basic':
+    case '/auth/basic':
         require_once __DIR__ . '/Auth/basic.php';
         break;
-    case '/jwt':
+    case '/auth/jwt':
         require_once __DIR__ . '/Auth/jwt.php';
         break;
-    case '/query':
+    case '/auth/query':
         require_once __DIR__ . '/Auth/query.php';
         break;
-    case '/digest':
+    case '/auth/digest':
         require_once __DIR__ . '/Auth/digest.php';
         break;
+    case '/features/JWT/fetch':
+        require_once __DIR__ . '/Features/JWT/fetch.php';
+        break;
+    case '/features/JWT/timeout':
+        require_once __DIR__ . '/Features/JWT/timeout.php';
+        break;
+    case '/features/JWT/expires':
+        require_once __DIR__ . '/Features/JWT/expires.php';
+        break;
     default:
-        Helper::handleError("URL is not valid.");
+        Helper::handleError("URL is not valid.", function () {
+            http_response_code(404);
+        });
 }

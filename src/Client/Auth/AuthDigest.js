@@ -8,7 +8,7 @@
  */
 
 const { default: AxiosDigestAuth } = require("@mhoc/axios-digest-auth/dist");
-const { BASE_URL, PORT, INIT_FILE } = require("./config");
+const { BASE_URL, PORT, INIT_FILE } = require("../config");
 
 const digest = new AxiosDigestAuth({
   username: "root",
@@ -21,7 +21,7 @@ const digestAuth = (logging = true) =>
       const response = await digest.request({
         method: "GET",
         headers: { Accept: "application/json" },
-        url: `${BASE_URL}:${PORT}/${INIT_FILE}/digest`,
+        url: `${BASE_URL}:${PORT}/${INIT_FILE}/auth/digest`,
       });
       if (logging) {
         console.log(response.data);

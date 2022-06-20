@@ -5,12 +5,12 @@
  * Before run this, please make sure to perform "npm install" first.
  */
 
-const { instance: axios } = require("./config");
+const { instance: axios } = require("../config");
 
 const queryAuth = (logging = true) =>
   new Promise(async (resolve, reject) => {
     try {
-      const response = await axios.get(`/query`, {
+      const response = await axios.get(`/auth/query`, {
         params: {
           api_key: "root123",
         },
