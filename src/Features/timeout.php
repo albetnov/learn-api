@@ -1,9 +1,9 @@
 <?php
 
 /**
- * PHP Manual Expires API Implementation
+ * PHP Manual Timeout API Implementation
  * Enter using Postman/Insomnia with configuration (auth=bearer)
- * token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ilhva1JUTGVQSnoiLCJ1c2VybmFtZSI6InJvb3QifQ.-kcpKXGMhnXoqOcFLTu-NKuHYSrXP7kYDzuOfr3z_rg
+ * token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ilhva1JUTGVQSnoxeiIsInVzZXJuYW1lIjoicm9vdCJ9.drKo0_XU4Teg1bluOX56ctp_GaXL9n6lqRQrvuXU2yY
  * 
  * Some part of the code is from JWT Authentication. So it wont be explained again.
  */
@@ -22,7 +22,7 @@ $secret = "YFC72LDIX<wER}na4}>*,;4tRF'8$&bN!2%!kUmUhaS0xrCa*TEn-zVJme$'oWs";
 if (isset($_SERVER['HTTP_GET_TOKEN'])) {
     header("Content-Type: application/json");
     echo json_encode(['token' => JWT::encode([
-        'id' => 'XokRTLePJz',
+        'id' => 'XokRTLePJz1z',
         'username' => 'root'
     ], $secret, 'HS256')]);
     exit;
@@ -62,9 +62,9 @@ $search->execute([$decoded->id]);
 // If the user not exist
 if (!$search->fetch()) {
     // We will create them.
-    $query = "INSERT INTO history (id, RATE_LIMIT, REGISTERED_AT, EXPIRED_AT, ACTIVATED_AFTER) VALUES (?,?,?,?, ?)";
+    $query = "INSERT INTO history (id, RATE_LIMIT, REGISTERED_AT, EXPIRED_AT, ACTIVATED_AFTER) VALUES (?,?,?,?,?)";
     $stmt = $dbInstance->run()->prepare($query);
-    $result = $stmt->execute([$decoded->id, 0, time(), time() + (2 * 60), time()]);
+    $result = $stmt->execute([$decoded->id, 0, time(), time() + (2 * 60), 120]); // In here we put ACTIVATED_AFTER for 2 minutes.
     if (!$result) {
         // If user creation fail, we will return 500.
         Helper::handleError("A problem occoured on server.", function () {
@@ -90,15 +90,13 @@ $search->execute([$decoded->id]);
 // and then simply get the first result.
 $result = $search->fetchAll()[0];
 
-// Now we will perform some quick calculations to simply apply the expired.
-$expiry = $result['EXPIRED_AT'] - $result['REGISTERED_AT'];
+// Now we will check if the token is registered for how long.
 $compare = time() - $result['REGISTERED_AT'];
 
-
-// If the token expired
-if ($compare > $expiry) {
-    // We will then return that token is expired.
-    Helper::handleError("Token expired.");
+// If the token is registered for less than ACTIVATED_AFTER in database, we will return this message.
+if ($compare < $result['ACTIVATED_AFTER']) {
+    // We will then return that token invalid again.
+    Helper::handleError("Invalid token.");
 }
 
 // If everything is fine, we will return the welcome message.

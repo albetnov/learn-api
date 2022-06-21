@@ -33,6 +33,12 @@ switch ($_GET['url']) {
     case '/features/expires':
         require_once __DIR__ . '/Features/expires.php';
         break;
+    case '/features/timeout':
+        require_once __DIR__ . '/Features/timeout.php';
+        break;
+    case '/features/ratelimit':
+        require_once __DIR__ . '/Features/ratelimit.php';
+        break;
     default:
         Helper::handleError("URL is not valid.", function () {
             http_response_code(404);

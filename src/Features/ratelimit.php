@@ -1,9 +1,9 @@
 <?php
 
 /**
- * PHP Manual Expires API Implementation
+ * PHP Ratelimit API Implementation
  * Enter using Postman/Insomnia with configuration (auth=bearer)
- * token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6Ilhva1JUTGVQSnoiLCJ1c2VybmFtZSI6InJvb3QifQ.-kcpKXGMhnXoqOcFLTu-NKuHYSrXP7kYDzuOfr3z_rg
+ * token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IkZ6dUxrc21PbWQiLCJ1c2VybmFtZSI6InJvb3QiLCJyYXRlbGltaXQiOiIzIn0.iLDG-90snWqz7NCP8CsSOkUm5UEX4y176ZeyFL5TAeA
  * 
  * Some part of the code is from JWT Authentication. So it wont be explained again.
  */
@@ -13,7 +13,7 @@ use Albet\LearnApi\Helper;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-$secret = "YFC72LDIX<wER}na4}>*,;4tRF'8$&bN!2%!kUmUhaS0xrCa*TEn-zVJme$'oWs";
+$secret = "YFC72LDIX<wER}na4}>*,;4tRF'8$&bN!2%!kUmUhaS0xrCa*TEn-zVJme$'yuz";
 
 /**
  * Claim your token by adding the following to the header:
@@ -22,8 +22,9 @@ $secret = "YFC72LDIX<wER}na4}>*,;4tRF'8$&bN!2%!kUmUhaS0xrCa*TEn-zVJme$'oWs";
 if (isset($_SERVER['HTTP_GET_TOKEN'])) {
     header("Content-Type: application/json");
     echo json_encode(['token' => JWT::encode([
-        'id' => 'XokRTLePJz',
-        'username' => 'root'
+        'id' => 'FzuLksmOmd',
+        'username' => 'root',
+        'ratelimit' => '3'
     ], $secret, 'HS256')]);
     exit;
 }
@@ -62,9 +63,9 @@ $search->execute([$decoded->id]);
 // If the user not exist
 if (!$search->fetch()) {
     // We will create them.
-    $query = "INSERT INTO history (id, RATE_LIMIT, REGISTERED_AT, EXPIRED_AT, ACTIVATED_AFTER) VALUES (?,?,?,?, ?)";
+    $query = "INSERT INTO history (id, RATE_LIMIT, REGISTERED_AT, EXPIRED_AT, ACTIVATED_AFTER) VALUES (?,?,?,?,?)";
     $stmt = $dbInstance->run()->prepare($query);
-    $result = $stmt->execute([$decoded->id, 0, time(), time() + (2 * 60), time()]);
+    $result = $stmt->execute([$decoded->id, 0, time(), time() + (2 * 60), 0]);
     if (!$result) {
         // If user creation fail, we will return 500.
         Helper::handleError("A problem occoured on server.", function () {
@@ -90,16 +91,32 @@ $search->execute([$decoded->id]);
 // and then simply get the first result.
 $result = $search->fetchAll()[0];
 
-// Now we will perform some quick calculations to simply apply the expired.
-$expiry = $result['EXPIRED_AT'] - $result['REGISTERED_AT'];
+// Now we will check if the token is registered for how long.
 $compare = time() - $result['REGISTERED_AT'];
 
-
-// If the token expired
-if ($compare > $expiry) {
-    // We will then return that token is expired.
-    Helper::handleError("Token expired.");
+// If the token is registered for less than ACTIVATED_AFTER in database, we will return this message.
+if ($compare < (int) $result['ACTIVATED_AFTER']) {
+    // We will then return that token invalid again.
+    Helper::handleError("Invalid token.");
 }
+
+// If the rate limit has been reached
+if ($result['RATE_LIMIT'] >= $decoded->ratelimit) {
+    // We will return this.
+    Helper::handleError("Ratelimit exceeded.", function () use ($dbInstance, $decoded) {
+        // The code below are extras.
+        // Eventually you can also query to ACTIVATED_AFTER and then clear the ratelimit to refresh ratelimit.
+        // Don't forget to reset REGISTER_AT to current time.
+        $query = "UPDATE history SET RATE_LIMIT=?, ACTIVATED_AFTER=?, REGISTERED_AT=? WHERE id=?";
+        $stmt = $dbInstance->run()->prepare($query);
+        $stmt->execute([0, 120, time(), $decoded->id]);
+    });
+}
+
+// Query to the database to update the current user hit.
+$query = "UPDATE history SET RATE_LIMIT=? WHERE id=?";
+$stmt = $dbInstance->run()->prepare($query);
+$stmt->execute([$result['RATE_LIMIT'] + 1, $decoded->id]);
 
 // If everything is fine, we will return the welcome message.
 header('Content-Type: application/json');
