@@ -23,7 +23,7 @@ if (!$decoded) {
     Helper::handleError("Token invalid.");
 }
 
-// You will be greeted by the message "welcome" if the token is valid. Is took 1 minute for your token to be valid.
+// You will be greeted by the message "welcome" if the token is valid. It's took 1 minute for your token to be valid.
 header("Content-Type: application/json");
 echo json_encode(["status" => "success", "message" => "welcome"]);
 exit;
