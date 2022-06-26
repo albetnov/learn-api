@@ -1,7 +1,7 @@
 <?PHP
 
 /**
- * PHP Restful API Implementation for fetching data.
+ * PHP Restful API Implementation for fetching data with pagination.
  * Enter using Postman/Insomnia with configuration (auth=bearer)
  * token: (Please get it by running "php token.php" located in: src/CRUD/Tools/token.php.
  * 
@@ -22,14 +22,27 @@ if (!Token::validateToken($token)) {
     Helper::handleError("Invalid token.");
 }
 
+/**
+ * We will perform a check if the user sends required query.
+ */
+if (!isset($_GET['page']) || !isset($_GET['row'])) {
+    // If the user sent nothing we return error.
+    Helper::handleError();
+}
+
+$page = $_GET['page'];
+$row = $_GET['row'];
+$initial = ($page * $row) - $row; // To find start of data.
+
 header('Content-Type: application/json');
 
 /**
- * We simply fetch the database. So make sure to run fill.php first to fill your database with the dummy data.
+ * We simply fetch the database based on given query.
  */
 $db = new DB();
-$result = $db->run()->query("SELECT * FROM ticket");
-$data = $result->fetchAll(\PDO::FETCH_ASSOC);
+$stmt = $db->run()->prepare("SELECT * FROM ticket LIMIT ?,?");
+$stmt->execute([$initial, $row]);
+$data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
 /**
  * After that we will map the array. So it will return anything we need only.

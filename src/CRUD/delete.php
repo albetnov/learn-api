@@ -1,7 +1,7 @@
 <?PHP
 
 /**
- * PHP Restful API Implementation for fetching data.
+ * PHP Restful API Implementation for deleting data.
  * Enter using Postman/Insomnia with configuration (auth=bearer)
  * token: (Please get it by running "php token.php" located in: src/CRUD/Tools/token.php.
  * 
@@ -22,26 +22,30 @@ if (!Token::validateToken($token)) {
     Helper::handleError("Invalid token.");
 }
 
+/**
+ * In here we will check the ID. Simply by splitting the URL.
+ * If it's null or not defined we basically return null
+ */
+$id = explode('/', $_GET['url'])[3] ?? false;
+if (!$id) {
+    // If it's null we will return this message
+    Helper::handleError("Id required.");
+}
+
 header('Content-Type: application/json');
 
 /**
- * We simply fetch the database. So make sure to run fill.php first to fill your database with the dummy data.
+ * Then we simply query to the database.
+ * Based on url id.
  */
 $db = new DB();
-$result = $db->run()->query("SELECT * FROM ticket");
-$data = $result->fetchAll(\PDO::FETCH_ASSOC);
+$stmt = $db->run()->prepare("DELETE FROM ticket WHERE ID=?");
+$status = $stmt->execute([$id]);
 
-/**
- * After that we will map the array. So it will return anything we need only.
- * Actually we can also use filter for this.
- */
-$output = array_map(function ($data) {
-    return [
-        'ticket_id' => $data['ID'],
-        'ticket' => $data['ticket_type'],
-    ];
-}, $data);
+if ($status) {
+    echo json_encode(['status' => 'success', 'message' => 'Data deleted successfully.']);
+} else {
+    Helper::handleError("Error deleting data.");
+}
 
-// Return the mapped data
-echo json_encode($output);
 exit;

@@ -1,7 +1,7 @@
 <?PHP
 
 /**
- * PHP Restful API Implementation for fetching single data.
+ * PHP Restful API Implementation for searching data.
  * Enter using Postman/Insomnia with configuration (auth=bearer)
  * token: (Please get it by running "php token.php" located in: src/CRUD/Tools/token.php.
  * 
@@ -23,24 +23,25 @@ if (!Token::validateToken($token)) {
 }
 
 /**
- * In here we will check the ID. Simply by splitting the URL.
- * If it's null or not defined we basically return null
+ * In here we will check the query for search.
+ * Simply by splitting the url and getting the last part of array.
+ * Tips: If you unsure about the array size, you can get it with array_key_last() function.
  */
-$id = explode('/', $_GET['url'])[3] ?? false;
-if (!$id) {
+$query = explode('/', $_GET['url'])[3] ?? false;
+if (!$query) {
     // If it's null we will return this message
-    Helper::handleError("Id required.");
+    Helper::handleError("Search query required.");
 }
 
 header('Content-Type: application/json');
 
 /**
  * Then we simply query to the database.
- * Based on url id.
+ * Based on url search query.
  */
 $db = new DB();
-$stmt = $db->run()->prepare("SELECT * FROM ticket WHERE ID=? LIMIT 1");
-$stmt->execute([$id]);
+$stmt = $db->run()->prepare("SELECT * FROM ticket WHERE ticket_type LIKE ?");
+$stmt->execute(["%{$query}%"]);
 $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
 // And output the data.
