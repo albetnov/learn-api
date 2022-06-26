@@ -17,6 +17,16 @@ Simply run `composer install` to install the required dependencies.
 
 > Optional: `npm install` to install client dependencies. Please note that the Client features is still WIP and currently only support Auth and Features.
 
+## Serving Up
+
+To serve this project, please make sure the initial directory are set to base.
+
+With Built-in PHP:
+
+Simly perform `php -S localhost:8080` at base directory.
+
+Accessing index.php would be like this: `localhost:8080/src/index.php`.
+
 ## Refreshing Database
 
 To refresh a database for CRUD stuff you can perform:
@@ -36,7 +46,7 @@ Include `RESET_USER: true` into your header. This header can be hit into one of 
 
 We advised you to use Postman/Insomnia with this settings:
 
-`BASE_URL: localhost:8080/src/index.php?url=`
+`BASE_URL: http://localhost:8080/src/index.php?url=`
 
 and then in your request URL.
 
